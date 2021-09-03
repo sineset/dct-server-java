@@ -104,7 +104,7 @@ public class DBThread extends Thread {
 		if (_barcodes.size() < 1) {
 			return 1;
 		}
-		String SQLQuery = "INSERT INTO dct_barcodes(datetime,terminal_id,operation,barcode) VALUES (SYSDATETIME(),?,?,?)";
+		String SQLQuery = "INSERT INTO dct_warehouse(datetime,terminal_id,operation,barcode) VALUES (SYSDATETIME(),?,?,?)";
 		try {
 			stmt = conn.prepareStatement(SQLQuery);
 			for (int i = 0; i < _barcodes.size(); i++) {

@@ -38,6 +38,8 @@ class ClientSocketThread extends Thread {
 //					client_sock.send(word + "\r\n");
 //				}
 			}
+			buf_writer.write("OK, got");
+			buf_writer.flush();
 			buf_reader.close();
 			buf_writer.close();
 			in_reader.close();

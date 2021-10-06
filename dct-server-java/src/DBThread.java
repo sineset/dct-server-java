@@ -32,11 +32,6 @@ public class DBThread extends Thread {
 	}
 
 	public void run() {
-		int connect_result = connect();
-		if (connect_result != 0) {
-			System.out.print("SQL connect error " + connect_result + ", unable to execute, exiting db connection");
-			return;
-		}
 		ArrayList<ArrayList<String>> parsed_barcodes = null;
 		while (execute) {
 			try {
@@ -46,18 +41,38 @@ public class DBThread extends Thread {
 			}
 			String _xml = MainThread.barcodesQueue.poll();
 			if (_xml != null) {
-				BarcodeParser myParser = new BarcodeParser();
-				Document myDoc = myParser.parse(_xml);
-				parsed_barcodes = myParser.sql_formatter_acceptance(myDoc);
-				if (parsed_barcodes.size() > 0) {
-					System.out.println("insert returned " + insert(parsed_barcodes));
-				}
-
+				System.out.println(_xml);
 			}
-
 		}
-		disconnect();
 	}
+
+//	public void run() {
+//		int connect_result = connect();
+//		if (connect_result != 0) {
+//			System.out.print("SQL connect error " + connect_result + ", unable to execute, exiting db connection");
+//			return;
+//		}
+//		ArrayList<ArrayList<String>> parsed_barcodes = null;
+//		while (execute) {
+//			try {
+//				Thread.sleep(2000);
+//			} catch (InterruptedException e) {
+//				System.out.println("BDThread " + this.getName() + " failed sleeping: " + e.getMessage());
+//			}
+//			String _xml = MainThread.barcodesQueue.poll();
+//			if (_xml != null) {
+//				BarcodeParser myParser = new BarcodeParser();
+//				Document myDoc = myParser.parse(_xml);
+//				parsed_barcodes = myParser.sql_formatter_acceptance(myDoc);
+//				if (parsed_barcodes.size() > 0) {
+//					System.out.println("insert returned " + insert(parsed_barcodes));
+//				}
+//
+//			}
+//
+//		}
+//		disconnect();
+//	}
 
 	public void terminate() {
 		execute = false;

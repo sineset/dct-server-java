@@ -13,7 +13,8 @@ public class MainThread {
 	public static ConcurrentLinkedQueue<String> barcodesQueue = new ConcurrentLinkedQueue<String>();
 
 	public static void main(String[] args) throws IOException {
-		dbList.add(new DBThread("server.net.local", 1433, "fab", "sa", "qwerty"));
+
+		//dbList.add(new DBThread("server.net.local", 1433, "fab", "sa", "qwerty"));
 		ServerSocket listening_socket = new ServerSocket(PORT);
 		try {
 			while (true) {

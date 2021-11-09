@@ -2,26 +2,23 @@ import java.util.Base64;
 
 public class Base64Converter {
 
-	public static Boolean Encode(String encodable, String encoded) {
-		try {
-			Base64.Encoder my64Encoder = Base64.getEncoder();
-			byte[] b_encoded = my64Encoder.encode(encodable.getBytes());
-			encoded = new String(b_encoded);
-			return true;
-		} catch (Exception ed) {
-			return false;
-		}
+	public static String Encode(String encodable) {
+		Base64.Encoder my64Encoder = Base64.getEncoder();
+		byte[] b_encoded = my64Encoder.encode(encodable.getBytes());
+		String encoded = new String(b_encoded);
+		return encoded;
 	}
 
-	public static Boolean Decode(String decodable, String decoded) {
+	public static String Decode(String decodable) {
+		String decoded;
+		Base64.Decoder my64Decoder = Base64.getDecoder();
 		try {
-			Base64.Decoder my64Decoder = Base64.getDecoder();
 			byte[] b_decoded = my64Decoder.decode(decodable);
 			decoded = new String(b_decoded);
-			return true;
-		} catch (Exception ed) {
-			return false;
+		} catch (IllegalArgumentException ea) {
+			decoded = null;
 		}
+		return decoded;
 	}
 
 }

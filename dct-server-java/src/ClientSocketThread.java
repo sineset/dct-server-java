@@ -4,91 +4,93 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 class ClientSocketThread extends Thread {
 	public enum Mode {
-		IDLE, SEND, RECV, CLOS
+						IDLE, SEND, RECV, CLOS
 	}
 
-	private Mode mode;
-	private Socket socket;
-	private InputStreamReader in_reader;
-	private OutputStreamWriter out_writer;
-	private BufferedReader buf_reader;
-	private BufferedWriter buf_writer;
-	private String word_str;
-	private String recieved_data_str;
-	private String terminal_id;
+	protected Mode mode;
+	protected Socket socket;
+	protected InputStreamReader in_reader;
+	protected OutputStreamWriter out_writer;
+	protected BufferedReader buf_reader;
+	protected BufferedWriter buf_writer;
+	protected String recieved_line;
+	protected String recieved_lines_data;
+	protected MyLastException my_last_exception;
+	protected AtomicBoolean execute;
 
 	public ClientSocketThread(Socket connection_socket) throws IOException {
-		terminal_id = "";
 		mode = Mode.IDLE;
 		socket = connection_socket;
 		in_reader = new InputStreamReader(socket.getInputStream());
 		out_writer = new OutputStreamWriter(socket.getOutputStream());
 		buf_reader = new BufferedReader(in_reader);
 		buf_writer = new BufferedWriter(out_writer);
+		execute = new AtomicBoolean(true);
+		setName(getName() + " / " + socket.getRemoteSocketAddress().toString());
 		start();
 	}
 
 	@Override
 	public void run() {
-		recieved_data_str = "";
-		boolean cycle = true;
+		recieved_lines_data = "";
 		try {
-			while (cycle) {
-				word_str = buf_reader.readLine();
-				if (word_str == null) {
-					cycle = false;
-				} else if (word_str.compareTo("DATA") == 0) {
+			SendLine("DCT-SERER v.0.1 ready. Supported commands: DATA, GET, CLOSE");
+			while (execute.get()) {
+				recieved_line = buf_reader.readLine();
+				if (recieved_line == null) {
+					execute.set(false);
+				} else if (recieved_line.compareTo("CLOSE") == 0) {
+					mode = Mode.CLOS;
+					SendLine("OK Bye bye");
+					execute.set(false);
+				} else if (recieved_line.compareTo("DATA") == 0) {
 					if (mode == Mode.IDLE) {
 						mode = Mode.RECV;
-						buf_writer.write("OK End data with \".\" at new line\n");
-						buf_writer.flush();
-						recieved_data_str = "";
+						SendLine("OK End data with <CR><LF>.<CR><LF>");
+						recieved_lines_data = "";
 					} else {
-						buf_writer.write("ERR Invalid session command sequence\n");
-						buf_writer.flush();
+						SendLine("ERR Invalid session command sequence");
 					}
-				} else if (word_str.compareTo(".") == 0) {
+				} else if (recieved_line.compareTo(".") == 0) {
 					mode = Mode.IDLE;
-					buf_writer.write("OK Data recieved\n");
-					buf_writer.flush();
-					System.out.println(recieved_data_str);
-					recieved_data_str = "";
-				} else if (word_str.compareTo("GETDATA") == 0) {
-					mode = Mode.SEND;
-					buf_writer.write("XmGhjKJkJhnxdfghxdg34655678tjHFDhg57==\n");
-					buf_writer.flush();
-					buf_writer.write("ENDDATA\n");
-					buf_writer.flush();
-				} else if (word_str.compareTo("CLOSE") == 0) {
-					mode = Mode.CLOS;
-					buf_writer.write("OK Bye bye\n");
-					buf_writer.flush();
-					System.out.println("*session closed*");
-					cycle = false;
-				} else if (word_str.startsWith("EHLO")) {
-					if (mode == Mode.IDLE) {
-						String[] ehlo = word_str.split(" ");
-						terminal_id = ehlo[1];
-						if (terminal_id.length() > 0) {
-							buf_writer.write("OK\n");
-							buf_writer.flush();
-						} else {
-							buf_writer.write("ERR Invalid terminal id\n");
-							buf_writer.flush();
-						}
+					String decoded = Base64Converter.Decode(recieved_lines_data);
+					if (decoded == null) {
+						SendLine("ERR Wrong data recieved");
+						MainThread.myLogger.Logging("Unable decode string " + recieved_lines_data);
 					} else {
-						buf_writer.write("ERR Invalid session command sequence\n");
-						buf_writer.flush();
+						SendLine("OK Data recieved");
+						if (MainThread.myLogger.SaveToFile(MainThread.myLogger.logPath + UUID.randomUUID().toString() + ".txt", decoded) == true) {
+						} else {
+							MainThread.myLogger.Logging("Unable save data");
+						}
+					}
+					recieved_lines_data = "";
+				} else if (recieved_line.startsWith("RETR")) {
+					if (mode == Mode.IDLE) {
+						mode = Mode.SEND;
+						String order;
+						String[] verify = recieved_line.split(" ");
+						if ((verify.length > 1) && (verify[1].length() > 0)) {
+							order = verify[1];
+							SendLine("Xn==" + order);
+							SendLine(".");
+						} else {
+							SendLine("ERR Invalid order name");
+						}
+						mode = Mode.IDLE;
+					} else {
+						SendLine("ERR Invalid session command sequence");
 					}
 				} else {
 					if (mode == Mode.RECV) {
-						recieved_data_str += word_str;
+						recieved_lines_data += recieved_line;
 					} else {
-						buf_writer.write("ERR Invalid session command sequence\n");
-						buf_writer.flush();
+						SendLine("ERR Invalid session command sequence");
 					}
 				}
 			}
@@ -98,33 +100,26 @@ class ClientSocketThread extends Thread {
 			out_writer.close();
 			socket.close();
 		} catch (IOException e) {
-			System.out.println(">>> I/O Error in socket");
-			System.out.println(e.getMessage());
+			my_last_exception.Save(e);
+			MainThread.myLogger.Logging("I/O Error in client socket: " + e.getMessage());
 			try {
 				buf_reader.close();
 				buf_writer.close();
 				socket.close();
 			} catch (IOException e1) {
-				System.out.println(">>> I/O Error while error processing n socket");
-				System.out.println(e1.getMessage());
+				my_last_exception.Save(e1);
+				MainThread.myLogger.Logging("I/O Error while socket error processing : " + e1.getMessage());
 			}
 			MainThread.clientSocketList.remove(this);
-			System.out.println(">> Connection " + this.toString() + "closed after error");
+			MainThread.myLogger.Logging("Connection " + this.toString() + "closed after error");
 		}
-//		System.out.println(recieved_data_str);
-//		MainThread.barcodesQueue.add(recieved_data_str);
+//		MainThread.barcodesQueue.add(recieved_lines_data);
 		MainThread.clientSocketList.remove(this);
 	}
 
-//	for (ClientSocketThread client_sock : MainThread.clientSocketList) {
-//	client_sock.send(word_str + "\r\n");
-//}
-
-//	private void send(String msg) {
-//		try {
-//			buf_writer.write(msg + "\n");
-//			buf_writer.flush();
-//		} catch (IOException ignored) {
-//		}
-//	}
+	private void SendLine(String send_data) throws IOException {
+		buf_writer.write(send_data);
+		buf_writer.newLine();
+		buf_writer.flush();
+	}
 }

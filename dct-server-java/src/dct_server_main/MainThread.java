@@ -1,3 +1,5 @@
+package dct_server_main;
+
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -13,8 +15,8 @@ public class MainThread {
 	public static void main(String[] args) {
 		// dbList.add(new DBThread("server.net.local", 1433, "fab", "sa", "qwerty"));
 		mySocketThread = new MainListeningSocketThread(4004);
-		AtomicBoolean execuing = new AtomicBoolean(true);
-		while (execuing.get()) {
+		AtomicBoolean executing = new AtomicBoolean(true);
+		while (executing.get()) {
 			if (mySocketThread.isAlive() != true) {
 //				System.out.println("My socket exited:");
 //				System.out.println(mySocketThread.my_last_exception.getException().getMessage());
@@ -22,7 +24,7 @@ public class MainThread {
 			try {
 				Thread.sleep(1000);
 			} catch (Exception e) {
-				myLogger.Logging("Main thread sleep error: " + e.getMessage());
+				myLogger.log("Main thread sleep error: " + e.getMessage());
 			}
 		}
 	}

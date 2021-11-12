@@ -1,3 +1,5 @@
+package dct_server_main;
+
 import java.sql.Connection;
 //import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -17,7 +19,6 @@ public class DBThread extends Thread {
 	String connectionUrl;
 	Connection conn;
 	PreparedStatement stmt;
-	MyLastException my_last_exception;
 
 	public DBThread(String db_server, int db_port, String db_name, String db_user, String db_pass) {
 		dbserver = db_server;
@@ -28,7 +29,6 @@ public class DBThread extends Thread {
 		execute.set(true);
 		conn = null;
 		stmt = null;
-		my_last_exception = new MyLastException();
 		start();
 	}
 
@@ -38,8 +38,7 @@ public class DBThread extends Thread {
 			try {
 				Thread.sleep(2000);
 			} catch (InterruptedException e) {
-				my_last_exception.Save(e);
-				MainThread.myLogger.Logging("Sleep thread error: " + e.getMessage());
+				MainThread.myLogger.log("Sleep thread error: " + e.getMessage());
 				System.out.println("BDThread " + this.getName() + " failed sleeping: " + e.getMessage());
 			}
 			String _xml = MainThread.barcodesQueue.poll();
@@ -52,11 +51,11 @@ public class DBThread extends Thread {
 //	public void run() {
 //		int connect_result = connect();
 //		if (connect_result != 0) {
-//			System.out.print("SQL connect error " + connect_result + ", unable to execute, exiting db connection");
+//			System.out.print("SQL connect error " + connect_result + ", unable to execute_run, exiting db connection");
 //			return;
 //		}
 //		ArrayList<ArrayList<String>> parsed_barcodes = null;
-//		while (execute) {
+//		while (execute_run) {
 //			try {
 //				Thread.sleep(2000);
 //			} catch (InterruptedException e) {

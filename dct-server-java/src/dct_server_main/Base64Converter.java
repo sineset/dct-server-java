@@ -1,3 +1,4 @@
+package dct_server_main;
 import java.util.Base64;
 
 public class Base64Converter {

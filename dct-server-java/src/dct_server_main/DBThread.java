@@ -10,15 +10,15 @@ import java.util.concurrent.atomic.AtomicBoolean;
 //import org.w3c.dom.Document;
 
 public class DBThread extends Thread {
-	AtomicBoolean execute;
-	String dbserver;
-	int dbPort;
-	String dbName;
-	String dbUser;
-	String dbPassword;
-	String connectionUrl;
-	Connection conn;
-	PreparedStatement stmt;
+	protected AtomicBoolean executing;
+	protected String dbserver;
+	protected int dbPort;
+	protected String dbName;
+	protected String dbUser;
+	protected String dbPassword;
+	protected String connectionUrl;
+	protected Connection conn;
+	protected PreparedStatement stmt;
 
 	public DBThread(String db_server, int db_port, String db_name, String db_user, String db_pass) {
 		dbserver = db_server;
@@ -26,7 +26,7 @@ public class DBThread extends Thread {
 		dbName = db_name;
 		dbUser = db_user;
 		dbPassword = db_pass;
-		execute.set(true);
+		executing.set(true);
 		conn = null;
 		stmt = null;
 		start();
@@ -34,7 +34,7 @@ public class DBThread extends Thread {
 
 	public void run() {
 //		ArrayList<ArrayList<String>> parsed_barcodes = null;
-		while (execute.get()) {
+		while (executing.get()) {
 			try {
 				Thread.sleep(2000);
 			} catch (InterruptedException e) {
@@ -51,11 +51,11 @@ public class DBThread extends Thread {
 //	public void run() {
 //		int connect_result = connect();
 //		if (connect_result != 0) {
-//			System.out.print("SQL connect error " + connect_result + ", unable to execute_run, exiting db connection");
+//			System.out.print("SQL connect error " + connect_result + ", unable to executing, exiting db connection");
 //			return;
 //		}
 //		ArrayList<ArrayList<String>> parsed_barcodes = null;
-//		while (execute_run) {
+//		while (executing) {
 //			try {
 //				Thread.sleep(2000);
 //			} catch (InterruptedException e) {
@@ -76,7 +76,7 @@ public class DBThread extends Thread {
 //		disconnect();
 //	}
 	public void terminate() {
-		execute.set(false);
+		executing.set(false);
 	}
 
 //	public int connect() {

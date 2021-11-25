@@ -1,13 +1,11 @@
 package dct_server_main;
+
 import java.io.IOException;
 import java.io.StringReader;
-
 import java.util.ArrayList;
-
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.ParserConfigurationException;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -17,8 +15,8 @@ import org.xml.sax.SAXException;
 
 public class BarcodeParser {
 
-	DocumentBuilderFactory dbf;
-	DocumentBuilder db;
+	protected DocumentBuilderFactory dbf;
+	protected DocumentBuilder db;
 
 	public BarcodeParser() {
 		dbf = DocumentBuilderFactory.newInstance();

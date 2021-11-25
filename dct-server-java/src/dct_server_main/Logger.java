@@ -7,12 +7,14 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class Logger {
-	public final String logPath = "e:\\dct-svr\\";
-	public final String logFile = logPath + "log.txt";
-	private SimpleDateFormat date_format_string;
+	private String logDir;
+	private String mainLogFile;
+	protected SimpleDateFormat date_format_string;
 
-	public Logger() {
+	public Logger(String logdir) {
 		date_format_string = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		logDir = logdir;
+		mainLogFile = logDir + "\\log.txt";
 	}
 
 	public String now() {
@@ -27,25 +29,11 @@ public class Logger {
 		return new Date();
 	}
 
-	public Boolean saveToFile(String path, String data) {
-		Charset chrst_utf8 = Charset.forName("UTF-8");
-		try {
-			FileWriter flwr = new FileWriter(path, chrst_utf8, true);
-			flwr.write(data);
-			flwr.close();
-			flwr = null;
-		} catch (IOException e) {
-			return false;
-		}
-		chrst_utf8 = null;
-		return true;
-	}
-
 	public synchronized Boolean log(String data) {
 		try {
 			Charset chrst_utf8 = Charset.forName("UTF-8");
 			CharSequence chsq = (CharSequence) ("[" + now() + "]" + System.lineSeparator() + data);
-			FileWriter flwr = new FileWriter(logFile, chrst_utf8, true);
+			FileWriter flwr = new FileWriter(mainLogFile, chrst_utf8, true);
 			flwr.append(chsq + System.lineSeparator());
 			flwr.close();
 			flwr = null;
@@ -59,7 +47,7 @@ public class Logger {
 		Charset chrst_utf8 = Charset.forName("UTF-8");
 		try {
 			CharSequence chsq = (CharSequence) ("[" + now() + "]" + System.lineSeparator() + data);
-			FileWriter flwr = new FileWriter(logPath + log_file_name, chrst_utf8, true);
+			FileWriter flwr = new FileWriter(logDir + "\\" + log_file_name, chrst_utf8, true);
 			flwr.append(chsq);
 			flwr.close();
 			flwr = null;
@@ -68,5 +56,4 @@ public class Logger {
 		}
 		return true;
 	}
-
 }
